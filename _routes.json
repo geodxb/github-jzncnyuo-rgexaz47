@@ -1,0 +1,8 @@
+{ 
+  "routes": [ 
+    { "pattern": "/*",
+      "serve": "/index.html"
+    } 
+  ] 
+}
+
