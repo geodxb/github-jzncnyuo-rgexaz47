@@ -1,0 +1,100 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users collection - admins can read/write all, users can read/write their own data
+    match /users/{userId} {
+      // Allow admins to read and write all user documents
+      allow read, write: if request.auth != null && 
+        request.auth.token.email == 'crisdoraodxb@gmail.com';
+      
+      // Allow any authenticated user to read the admin's user document
+      allow read: if request.auth != null && 
+        resource.data.email == 'crisdoraodxb@gmail.com';
+      
+      // Allow users to read/write their own data
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Transactions collection - admins can read/write all, investors can read their own
+    match /transactions/{transactionId} {
+      allow read, write: if request.auth != null && 
+        request.auth.token.email == 'crisdoraodxb@gmail.com';
+      
+      allow read: if request.auth != null && 
+        resource.data.investorId == request.auth.uid;
+    }
+    
+    // Withdrawal requests - admins can read/write all, investors can read/write their own
+    match /withdrawalRequests/{requestId} {
+      allow read, write: if request.auth != null && 
+        request.auth.token.email == 'crisdoraodxb@gmail.com';
+      
+      allow read, create: if request.auth != null && 
+        resource.data.investorId == request.auth.uid;
+      
+      // Allow system to update approval dates automatically
+      allow update: if request.auth != null && 
+        request.auth.token.email == 'crisdoraodxb@gmail.com' &&
+        request.resource.data.keys().hasOnly(['status', 'processedBy', 'processedAt', 'approvalDate', 'reason', 'updatedAt']);
+    }
+    
+    // Commissions collection - only admins can read/write
+    match /commissions/{commissionId} {
+      allow read, write: if request.auth != null && 
+        request.auth.token.email == 'crisdoraodxb@gmail.com';
+    }
+    
+    // Commission withdrawals - only admins can read/write
+    match /commissionWithdrawals/{withdrawalId} {
+      allow read, write: if request.auth != null && 
+        request.auth.token.email == 'crisdoraodxb@gmail.com';
+    }
+    
+    // Support credentials - only admins can read/write
+    match /supportCredentials/{credentialId} {
+      allow read, write: if request.auth != null && 
+        request.auth.token.email == 'crisdoraodxb@gmail.com';
+    }
+    
+    // Account closure requests - only admins can read/write
+    match /accountClosureRequests/{requestId} {
+      allow read, write: if request.auth != null && 
+        request.auth.token.email == 'crisdoraodxb@gmail.com';
+    }
+    
+    // Conversations collection - admins can read/write all, users can read/write their own conversations
+    match /conversations/{conversationId} {
+      // Allow admins to read and write all conversations
+      allow read, write: if request.auth != null && 
+        request.auth.token.email == 'crisdoraodxb@gmail.com';
+      
+      // Allow any authenticated user to create conversations
+      allow create: if request.auth != null;
+      
+      // Allow users to read/update conversations they are participants in
+      allow read, update: if request.auth != null && 
+        (request.auth.uid in resource.data.participants || 
+         request.auth.token.email == 'crisdoraodxb@gmail.com');
+    }
+    
+    // Affiliate messages collection - admins can read/write all, users can read/write their own messages
+    match /affiliateMessages/{messageId} {
+      // Allow admins to read and write all messages
+      allow read, write: if request.auth != null && 
+        request.auth.token.email == 'crisdoraodxb@gmail.com';
+      
+      // Allow any authenticated user to create messages
+      allow create: if request.auth != null;
+      
+      // Allow users to read messages in conversations they participate in
+      allow read: if request.auth != null && 
+        (resource.data.senderId == request.auth.uid || 
+         request.auth.token.email == 'crisdoraodxb@gmail.com' ||
+         resource.data.conversationId != null);
+      
+      // Allow users to update their own messages
+      allow update: if request.auth != null && 
+        (resource.data.senderId == request.auth.uid || 
+         request.auth.token.email == 'crisdoraodxb@gmail.com');
+  }
+}
