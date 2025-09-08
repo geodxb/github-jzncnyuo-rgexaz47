@@ -1,5 +1,5 @@
 {
-  "name": "trading-affiliate-dashboard",
+  "name": "demo-bk-test2",
   "compatibility_date": "2025-01-08",
   "build": {
     "command": "npm run build"
